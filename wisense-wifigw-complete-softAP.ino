@@ -26,7 +26,7 @@
 #include "Particle.h"
 #include "softap_cred.h"
 #include "softap_http.h"
-SerialLogHandler logHandler;
+//SerialLogHandler logHandler;
 char str1[32],str2[32],str3[32],str4[50],str5[50];  // global
 char mqtt_server[50],mqtt_usn[32],mqtt_pwd[32],mqtt_clientId[50],mqtt_topic[50];
 int mqtt_server_sts,mqtt_usn_sts,mqtt_pwd_sts,mqtt_clientId_sts,mqtt_topic_sts;
@@ -35,9 +35,8 @@ char mqtt_server_default[32] = "dashboard.wisense.in",mqtt_pwd_default[32]="NULL
 int cmp_res1,cmp_res2,cmp_res3,cmp_res4,cmp_res5,cmp_res6,cmp_res7;
 int softAP_flag,softAP_flag_default=3;      //3 for default mqtt method (dashboard.wisense.in)
 int mqtt_select_flag=0;          // mqtt_select_flag == 1 (default) mqtt_select_flag == 2(user defined)
-int print_count = 0;
 char mqtt_server_store[50],mqtt_usn_store[32],mqtt_pwd_store[32],mqtt_clientId_store[50],mqtt_topic_store[50];
-
+int reset_sts_flag=0;
 int setup_status=0; 
 int button = D5;                      // button is connected to D5
 //char server[32];
@@ -92,31 +91,31 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str1, val, sizeof(str1));
-                Serial.printlnf("\nStr1 data <%s> and val-1 data <%s>",str1,val);
+                //Serial.printlnf("\nStr1 data <%s> and val-1 data <%s>",str1,val);
             }
             if(strcmp(token, "str2") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str2, val, sizeof(str2));
-                Serial.printlnf("\nStr2 data <%s> and val-2 data <%s>\n",str2,val);
+                //Serial.printlnf("\nStr2 data <%s> and val-2 data <%s>\n",str2,val);
             }
             if(strcmp(token, "str3") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str3, val, sizeof(str3));
-                Serial.printlnf("\nStr3 data <%s> and val-3 data <%s>\n",str3,val);
+                //Serial.printlnf("\nStr3 data <%s> and val-3 data <%s>\n",str3,val);
             }
             if(strcmp(token, "str4") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str4, val, sizeof(str4));
-                Serial.printlnf("\nStr4 data <%s> and val-4 data <%s>\n",str4,val);
+                //Serial.printlnf("\nStr4 data <%s> and val-4 data <%s>\n",str4,val);
             }
             if(strcmp(token, "str5") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str5, val, sizeof(str5));
-                Serial.printlnf("\nStr5 data <%s> and val-5 data <%s>\n",str5,val);
+                //Serial.printlnf("\nStr5 data <%s> and val-5 data <%s>\n",str5,val);
             }
             if(strcmp(token, "store") == 0) 
             {
@@ -133,19 +132,20 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
                 EEPROM.get(100,mqtt_pwd);
                 EEPROM.get(150,mqtt_clientId);
                 EEPROM.get(200,mqtt_topic);
-                Serial.printlnf("\nDefault store user-default for inital start\n");
+                //Serial.printlnf("\nDefault store user-default for inital start\n");
                 strcpy(mqtt_server_store,mqtt_server);                                   //this is for first time login to this creditinals without this data storing will not happen untill device restarts, because data was fetching before main (constructor)
                 strcpy(mqtt_usn_store,mqtt_usn);
                 strcpy(mqtt_pwd_store,mqtt_pwd);
                 strcpy(mqtt_topic_store,mqtt_topic);
                 strcpy(mqtt_clientId_store,mqtt_clientId);
-                Serial.printlnf("\n\n");
+                //Serial.printlnf("\n\n");
                 delay(100);
+                reset_sts_flag = 1;
             }
             if(strcmp(token,"save_default") == 0)
             {
-                Serial.printlnf("\n*******************************************************************************\n");
-                Serial.printlnf("\nEntering into the save_default mode...\n");
+                //Serial.printlnf("\n*******************************************************************************\n");
+                //Serial.printlnf("\nEntering into the save_default mode...\n");
                 EEPROM.put(250,3);      //3 act as a default status flag
                 EEPROM.put(0,"NULL");
                 EEPROM.put(50,"NULL");
@@ -154,15 +154,16 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
                 EEPROM.put(200,"NULL");
                 delay(100);
                 EEPROM.get(250,softAP_flag);    
-                Serial.printlnf("\nDefault store default mode for intial start\n");
+                //Serial.printlnf("\nDefault store default mode for intial start\n");
                 strcpy(mqtt_server_store,mqtt_server_default);          //this is for first time login to this creditinals without this data storing will not happen untill device restarts, because data was fetching before main (constructor)
                 strcpy(mqtt_usn_store,"NULL");
                 strcpy(mqtt_pwd_store,mqtt_pwd_default);
                 strcpy(mqtt_clientId_store,"NULL");
                 strcpy(mqtt_topic_store,mqtt_topic_default);
-                Serial.printlnf("\nThe softAP_flag stored in EEPROM <%d>\n",softAP_flag);
-                Serial.printlnf("\n*******************************************************************************\n");
-                delay(100);   
+                //Serial.printlnf("\nThe softAP_flag stored in EEPROM <%d>\n",softAP_flag);
+                //Serial.printlnf("\n*******************************************************************************\n");
+                delay(100);
+                reset_sts_flag = 1;
             }
             query = value; // continue with the rest
       }
@@ -204,7 +205,7 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
     EEPROM.put(150,str4);
     */
     EEPROM.get(250,softAP_flag);
-    Serial.printlnf("Getting data from eeprom, softAP_flag <%d>\n",softAP_flag);
+    //Serial.printlnf("Getting data from eeprom, softAP_flag <%d>\n",softAP_flag);
     delay(500);
     EEPROM.get(0,mqtt_server);
     EEPROM.get(50,mqtt_usn);
@@ -215,7 +216,7 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
     mqtt_server_len = strlen(mqtt_server);
     mqtt_server[mqtt_server_len+1] = '\0';
     
-    
+    /*
     Serial.printlnf("\n************************************************************************************************************************\n");
     Serial.printlnf("address location 0 and mqtt_server (data-1): %s",mqtt_server);
     Serial.printlnf("address location 50 and mqtt_usn (data-2): %s",mqtt_usn);    
@@ -224,6 +225,7 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
     Serial.printlnf("address location 200 and mqtt_topic (data-5): %s",mqtt_topic);
     Serial.printlnf("\n************************************************************************************************************************\n");
     delay(500);
+    */
     
 }
 
@@ -318,7 +320,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
 }
 /*
 char ACCESS_TOKEN_01[] = "PApZlWFTY3gszEzkQeqL"; //     WRT20PV2/C
-char ACCESS_TOKEN_02[] = "x2K67ZffNpo8JXviagMF"; // 	WTN2P1
+char ACCESS_TOKEN_02[] = "x2K67ZffNpo8JXviagMF"; //   WTN2P1
 char ACCESS_TOKEN_03[] = "dCBviYrvyecaDA4Obqo0"; //     WTN2P1
 char ACCESS_TOKEN_04[] = "aYVVrYRXupB19Z76UX8v";//IoTvity
 char ACCESS_TOKEN_05[] = "BT3THhuogMX0G3Ta8Kol";    //HIH Sensor - 1
@@ -336,12 +338,12 @@ void mqttServerConnect(char* user, char* pass)
 {
     if(strcmp(mqtt_clientId_store,"NULL") == 0 || mqtt_clientId_sts == 1 || mqtt_select_flag == 1 && softAP_flag == softAP_flag_default )   //softAP_flag_default = 0;
     {
-        Serial.printlnf("\nEntered into System.deviceID loop - 1\n");
+        //Serial.printlnf("\nEntered into System.deviceID loop - 1\n");
            client.connect(System.deviceID(), user , pass);
        }
     if(softAP_flag == 0 && mqtt_select_flag == 2 && strcmp(mqtt_clientId,"NULL") != 0 && strcmp(mqtt_clientId_store,"NULL") != 0)         
     {
-        Serial.printlnf("\nEntering into clientId connect loop-1\n");
+        //Serial.printlnf("\nEntering into clientId connect loop-1\n");
         client.connect(mqtt_clientId_store,user,pass);
     }
     int sts = 0;
@@ -351,12 +353,12 @@ void mqttServerConnect(char* user, char* pass)
       Particle.publish("Retrying MQTT..." , "wisense broker", PRIVATE);
         if(strcmp(mqtt_clientId_store,"NULL") == 0 || mqtt_clientId_sts == 1 || mqtt_select_flag == 1 && softAP_flag == softAP_flag_default )
          {
-             Serial.printlnf("\nEntered into System.deviceID loop - 2\n");
+             //Serial.printlnf("\nEntered into System.deviceID loop - 2\n");
             client.connect(System.deviceID(), user , pass); // ClientID, User, PW
          }
         if(softAP_flag == 0 && mqtt_select_flag == 2 && strcmp(mqtt_clientId,"NULL") != 0 && strcmp(mqtt_clientId_store,"NULL") != 0)         
         {
-            Serial.printlnf("\nEntering into clientId connect loop-2\n");
+            //Serial.printlnf("\nEntering into clientId connect loop-2\n");
             client.connect(mqtt_clientId_store,user,pass);
         }
       //client.connect(CLIENT_ID_01, user , pass);
@@ -943,6 +945,7 @@ void setup()
    LPWMN_initNodeList();    
     GW_TimeSync();
     
+  pinMode(button, INPUT_PULLUP);    // sets pin as input
    pinMode(ledKA, OUTPUT);
    pinMode(ledDbg, OUTPUT);
    pinMode(ledTxToCloud, OUTPUT);
@@ -1362,6 +1365,14 @@ void GW_sendMergedDataEvtToCloudJson(void)
    {
        if (Particle.connected())
        {
+           //first time only after configuration
+            if(reset_sts_flag == 1)
+            {
+                delay(100);
+                reset_sts_flag = 0;
+                System.reset();
+            }
+           
             int snsrId_count =4;
             seq_nr++;
             digitalWrite(ledTxToCloud, HIGH);       
@@ -1513,8 +1524,8 @@ void GW_sendMergedDataEvtToCloudJson(void)
             
             if(softAP_flag == 0  && mqtt_select_flag == 2)
             {
-                Serial.printlnf("\nEntering into the user mode\n");
-                Serial.printlnf("\nEnter the user defined mqtt\n");
+                //Serial.printlnf("\nEntering into the user mode\n");
+                //Serial.printlnf("\nEnter the user defined mqtt\n");
                 //end the code with user defined usn,pwd and setthe topic (use global variable)
                 /* example */
                 mqttServerConnect(mqtt_usn_store, mqtt_pwd_store);
@@ -1562,6 +1573,7 @@ void GW_sendMergedDataEvtToCloudJson(void)
             http.post(request, response, headers); */ 
             
             digitalWrite(ledTxToCloud, LOW);
+            /*
             Serial.printlnf("\n****************************************************************************\n");
             //Serial.printlnf("\n softAP_flag<%d>\n mqtt_select_flag <%d>\n ***********************************************************************\n",softAP_flag,mqtt_select_flag);
             //delay(100);
@@ -1571,6 +1583,7 @@ void GW_sendMergedDataEvtToCloudJson(void)
             delay(100);
             Serial.printlnf("\n EEPROM stored datas listed below:\n mqtt_server <%s>,\n mqtt_usn <%s>,\n> mqtt_pwd <%s>,\n mqtt_clientId <%s>,\n mqtt_topic <%s>.\n ***********************************************************************\n",mqtt_server,mqtt_usn,mqtt_pwd,mqtt_clientId,mqtt_topic);
             Serial.printlnf("\n****************************************************************************\n");
+            */
        }
    }
    
@@ -3705,6 +3718,3 @@ void loop()
   
   // delay(500);
 }
-
-
-
