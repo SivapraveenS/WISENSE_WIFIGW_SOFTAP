@@ -1,14 +1,12 @@
-// This #include statement was automatically added by the Particle IDE.
-#include "softap_cred.h"
-
-// This #include statement was automatically added by the Particle IDE.
-#include "softap_cred.h"
-
 #include <MQTT.h>
 #include <ArduinoJson.h>
 #include <stdio.h>
 #include <stdlib.h>
- #include <string.h>
+#include <string.h>
+ /* wifi manager */
+#include "Particle.h"
+#include "softap_cred.h"
+#include "softap_http.h"
 /*
  * File Name: wisense_gateway.ino
  * Author: ram krishnan (rkris@wisense.in)
@@ -19,30 +17,20 @@
  * All rights reserved.
  *
  * File cannot be copied and/or distributed without the express
- * permission of the author.
+ * permission of the author.    
  */
  
-/* wifi manager */
-#include "Particle.h"
-#include "softap_cred.h"
-#include "softap_http.h"
-//SerialLogHandler logHandler;
+#define 
+ 
+/* global declaration */
 char str1[32],str2[32],str3[32],str4[50],str5[50];  // global
 char mqtt_server[50],mqtt_usn[32],mqtt_pwd[32],mqtt_clientId[50],mqtt_topic[50];
-int mqtt_server_sts,mqtt_usn_sts,mqtt_pwd_sts,mqtt_clientId_sts,mqtt_topic_sts;
-int mqtt_server_len,mqtt_usn_len,mqtt_clientId_len;
+int mqtt_server_sts,mqtt_usn_sts,mqtt_pwd_sts,mqtt_clientId_sts,mqtt_topic_sts,mqtt_server_len,mqtt_usn_len,mqtt_clientId_len;
 char mqtt_server_default[32] = "dashboard.wisense.in",mqtt_pwd_default[32]="NULL",mqtt_topic_default[50] = "v1/devices/me/telemetry";
-int cmp_res1,cmp_res2,cmp_res3,cmp_res4,cmp_res5,cmp_res6,cmp_res7;
 int softAP_flag,softAP_flag_default=3;      //3 for default mqtt method (dashboard.wisense.in)
 int mqtt_select_flag=0;          // mqtt_select_flag == 1 (default) mqtt_select_flag == 2(user defined)
 char mqtt_server_store[50],mqtt_usn_store[32],mqtt_pwd_store[32],mqtt_clientId_store[50],mqtt_topic_store[50];
-int reset_sts_flag=0;
-int setup_status=0; 
-int button = D5;                      // button is connected to D5
-//char server[32];
-//int store_status=0;
-//char *str1,*str2,*str3,*str4;
-//char strstore[4][32];
+int reset_sts_flag=0, setup_status=0, button = D5;                      // button is connected to D5
 
 int addr_size_store[4];
 struct Page
@@ -132,20 +120,16 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
                 EEPROM.get(100,mqtt_pwd);
                 EEPROM.get(150,mqtt_clientId);
                 EEPROM.get(200,mqtt_topic);
-                //Serial.printlnf("\nDefault store user-default for inital start\n");
                 strcpy(mqtt_server_store,mqtt_server);                                   //this is for first time login to this creditinals without this data storing will not happen untill device restarts, because data was fetching before main (constructor)
                 strcpy(mqtt_usn_store,mqtt_usn);
                 strcpy(mqtt_pwd_store,mqtt_pwd);
                 strcpy(mqtt_topic_store,mqtt_topic);
                 strcpy(mqtt_clientId_store,mqtt_clientId);
-                //Serial.printlnf("\n\n");
                 delay(100);
                 reset_sts_flag = 1;
             }
             if(strcmp(token,"save_default") == 0)
             {
-                //Serial.printlnf("\n*******************************************************************************\n");
-                //Serial.printlnf("\nEntering into the save_default mode...\n");
                 EEPROM.put(250,3);      //3 act as a default status flag
                 EEPROM.put(0,"NULL");
                 EEPROM.put(50,"NULL");
@@ -154,14 +138,11 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
                 EEPROM.put(200,"NULL");
                 delay(100);
                 EEPROM.get(250,softAP_flag);    
-                //Serial.printlnf("\nDefault store default mode for intial start\n");
                 strcpy(mqtt_server_store,mqtt_server_default);          //this is for first time login to this creditinals without this data storing will not happen untill device restarts, because data was fetching before main (constructor)
                 strcpy(mqtt_usn_store,"NULL");
                 strcpy(mqtt_pwd_store,mqtt_pwd_default);
                 strcpy(mqtt_clientId_store,"NULL");
                 strcpy(mqtt_topic_store,mqtt_topic_default);
-                //Serial.printlnf("\nThe softAP_flag stored in EEPROM <%d>\n",softAP_flag);
-                //Serial.printlnf("\n*******************************************************************************\n");
                 delay(100);
                 reset_sts_flag = 1;
             }
@@ -198,72 +179,29 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
       cb(cbArg, 0, 200, myPages[idx].mime_type, nullptr);
       result->write(myPages[idx].data);
     }
-    /*
+    /*need of eeprom write fails under user-defined
     EEPROM.put(0,str1);
     EEPROM.put(50,str2);
     EEPROM.put(100,str3);
     EEPROM.put(150,str4);
     */
     EEPROM.get(250,softAP_flag);
-    //Serial.printlnf("Getting data from eeprom, softAP_flag <%d>\n",softAP_flag);
-    delay(500);
+    delay(100);
     EEPROM.get(0,mqtt_server);
     EEPROM.get(50,mqtt_usn);
     EEPROM.get(100,mqtt_pwd);
     EEPROM.get(150,mqtt_clientId);
     EEPROM.get(200,mqtt_topic);
-    //strcpy(server, mqtt_server);
     mqtt_server_len = strlen(mqtt_server);
     mqtt_server[mqtt_server_len+1] = '\0';
-    
-    /*
-    Serial.printlnf("\n************************************************************************************************************************\n");
-    Serial.printlnf("address location 0 and mqtt_server (data-1): %s",mqtt_server);
-    Serial.printlnf("address location 50 and mqtt_usn (data-2): %s",mqtt_usn);    
-    Serial.printlnf("address location 100 and mqtt_pwd (data-3): %s",mqtt_pwd);
-    Serial.printlnf("address location 150 and mqtt_clientId (data-4): %s",mqtt_clientId);
-    Serial.printlnf("address location 200 and mqtt_topic (data-5): %s",mqtt_topic);
-    Serial.printlnf("\n************************************************************************************************************************\n");
-    delay(500);
-    */
-    
 }
 
 STARTUP(softap_set_application_page_handler(myPage, nullptr));
-
-
-/****************************************************************************************/
-
-
-
-
-// This #include statement was automatically added by the Particle IDE.
-
-
-
-#include <MQTT.h>
-
-// This #include statement was automatically added by the Particle IDE.
-//#define ARDUINOJSON_ENABLE_ARDUINO_STRING 1
-#include <ArduinoJson.h>
-/*
- * File Name: wisense_boron_gw.ino
- * Author: ram krishnan (rkris@wisense.in)
- * Created: Feb/19/2020f
- *
- *
- * Copyright (c) <2018>, <ram krishnan>
- * All rights reserved.
- *
- * File cannot be copied and/or distributed without the express
- * permission of the author.
- */
 
 void serverstore (void) __attribute__ ((constructor)); 
 
 void serverstore (void) 
 { 
-    //printf ("cleanup code after main()\n"); 
     EEPROM.get(250,softAP_flag);
     EEPROM.get(0,mqtt_server);
     EEPROM.get(50,mqtt_usn);
@@ -278,14 +216,6 @@ void serverstore (void)
         mqtt_clientId_sts = 1;
         mqtt_topic_sts = 1;
     }
-    /*
-    if(mqtt_server == "NULL" && mqtt_usn == "NULL" && mqtt_pwd == "NULL" && mqtt_clientId == "NULL" && mqtt_topic == "NULL")
-    {
-        EEPROM.put(250,3);
-        EEPROM.get(250,softAP_flag);
-        Serial.printlnf("\n all values are null so the console logs to default (WiSense Dashboard)\n");
-    }
-    */
     if(softAP_flag == softAP_flag_default)
     {
         mqtt_select_flag = 1;           //default wiSense dashboard
@@ -318,19 +248,12 @@ MQTT client(mqtt_server_store, MQTTPORT , callback );           //common access 
 void callback(char* topic, byte* payload, unsigned int length) {
     Particle.publish("MQTT Published" , topic, PRIVATE);    
 }
+
 /*
-char ACCESS_TOKEN_01[] = "PApZlWFTY3gszEzkQeqL"; //     WRT20PV2/C
-char ACCESS_TOKEN_02[] = "x2K67ZffNpo8JXviagMF"; //   WTN2P1
-char ACCESS_TOKEN_03[] = "dCBviYrvyecaDA4Obqo0"; //     WTN2P1
-char ACCESS_TOKEN_04[] = "aYVVrYRXupB19Z76UX8v";//IoTvity
-char ACCESS_TOKEN_05[] = "BT3THhuogMX0G3Ta8Kol";    //HIH Sensor - 1
-char ACCESS_TOKEN_06[] = "u4lKyW2HpytHHAmapaSJ";    //HIH Sensor - 2
-char ACCESS_TOKEN_07[] = "9bGDp5eyPQ56ZJ6B5dMq";
-char CLIENT_ID_01[] = "5e89b935-f844-4b47-9086-a78e701a97a"; //IoTvity ClientId
-char CLIENT_username_01[] = "mqttaeologic";           //IoTvity mqtt username
-char CLIENT_password_01[] = "mqttaeologic@#2020";             //IoTvity mqtt passwd
+*each dashboard has a seperate access token need to add/replace whenever the new device was created and need to 
+*add/replace in the sendtocloud function
 */
-char ACCESS_TOKEN_01[] = "09tpyvrmuAUGCSnN4YVA";  //HIH SN - 01
+char ACCESS_TOKEN_01[] = "09tpyvrmuAUGCSnN4YVA";  //HIH SN - 01         
 char ACCESS_TOKEN_02[] = "Df0eDNbFWxhT43ZP0K8o";  //HIH SN - 02
 int tspk_rssi,tspk_lqi;
 
@@ -338,12 +261,10 @@ void mqttServerConnect(char* user, char* pass)
 {
     if(strcmp(mqtt_clientId_store,"NULL") == 0 || mqtt_clientId_sts == 1 || mqtt_select_flag == 1 && softAP_flag == softAP_flag_default )   //softAP_flag_default = 0;
     {
-        //Serial.printlnf("\nEntered into System.deviceID loop - 1\n");
            client.connect(System.deviceID(), user , pass);
-       }
+    }
     if(softAP_flag == 0 && mqtt_select_flag == 2 && strcmp(mqtt_clientId,"NULL") != 0 && strcmp(mqtt_clientId_store,"NULL") != 0)         
     {
-        //Serial.printlnf("\nEntering into clientId connect loop-1\n");
         client.connect(mqtt_clientId_store,user,pass);
     }
     int sts = 0;
@@ -353,12 +274,10 @@ void mqttServerConnect(char* user, char* pass)
       Particle.publish("Retrying MQTT..." , "wisense broker", PRIVATE);
         if(strcmp(mqtt_clientId_store,"NULL") == 0 || mqtt_clientId_sts == 1 || mqtt_select_flag == 1 && softAP_flag == softAP_flag_default )
          {
-             //Serial.printlnf("\nEntered into System.deviceID loop - 2\n");
             client.connect(System.deviceID(), user , pass); // ClientID, User, PW
          }
         if(softAP_flag == 0 && mqtt_select_flag == 2 && strcmp(mqtt_clientId,"NULL") != 0 && strcmp(mqtt_clientId_store,"NULL") != 0)         
         {
-            //Serial.printlnf("\nEntering into clientId connect loop-2\n");
             client.connect(mqtt_clientId_store,user,pass);
         }
       //client.connect(CLIENT_ID_01, user , pass);
@@ -367,13 +286,18 @@ void mqttServerConnect(char* user, char* pass)
     return;
 }
 
-
+#include <math.h>
+#include "gw.h"
+#include "pltfrm.h"
+#include "uart.h"
+#include "dis.h"
+#include "lpwmn.h"
+#include "atuat.h"
 
 //#define EVENT_SEND_DATA_TO_CLOUD                            //to send seprate packets data to cloud 
 //#define EVENT_FMT_TYPE_MERGED_DATA_STRING                   //to send complete data in string format
 #define EVENT_FMT_TYPE_MERGED_DATA_JSON                     //used to send complete node data in one json
 uint32_t seq_nr=0;
-//char GW_macId_1[1024]="0xfc:0xc2:0x3d:0x0:0x0:0x1:0x70:0xc9";   //added wifi-gateway-1 (coordinator mac-id)
 char GW_macId_1[100]="0x0:0x1:0x70:0xc9";                               //"added for test gateway"
 //char GW_macId_2[100]="0x0:0x0:0x97:0x64";                               //added for the customer shipment() dated 15-09-2020
 char GW_macId_2[100]="0x0:0x1:0x70:0xc9";
@@ -383,15 +307,6 @@ char GW_macId_2[100]="0x0:0x1:0x70:0xc9";
 char GW_macBuff[1024];
 char GW_snsrIdBuff[16];
 char GW_devName[1024];
-
-
-#include <math.h>
-#include "gw.h"
-#include "pltfrm.h"
-#include "uart.h"
-#include "dis.h"
-#include "lpwmn.h"
-#include "atuat.h"
 
 
 #define GW_COORD_RESP_TMO_MILLISECS  2000
@@ -448,7 +363,6 @@ GW_atuatTagEntry_s  GW_atuatTagArray[GW_ATUAT_TAG_ARRAY_ENTRY_CNT];
 
 #define GW_ATUAT_BCN_PUBLISH_SKIP_CNT  8
 
-
 // char WIFI_apRespBuff[512];
 // WiFiAccessPoint WIFI_ap[5];
 
@@ -456,8 +370,6 @@ unsigned char USB_GW_APP_rxBuff[128];
 int USB_GW_APP_uartRxCnt = 0, USB_GW_APP_msgPyldLen = 0, USB_GW_APP_msgTotLen = 0;
 
 unsigned char USB_GW_APP_txBuff[256];
-
-
 
 /*
  * You may specify in code which antenna to use as the default at boot time using the STARTUP() macro.
@@ -503,7 +415,6 @@ SYSTEM_THREAD(ENABLED);
  
 #define GW_COORD_STATE_DOWN  1
 #define GW_COORD_STATE_UP  2
-
 
 // First, we're going to make some variables.
 // This is our "shorthand" that we'll use throughout the program:
@@ -1124,7 +1035,6 @@ unsigned int GW_ntohl(unsigned char *buff_p)
    return u32Val;
 }
 
-
 /*
  ********************************************************************
  *
@@ -1151,7 +1061,6 @@ int GW_getATUATRouterIdx(unsigned int rtrId)
    
    return rc;
 }
-
 
 /*
  ********************************************************************
@@ -1247,7 +1156,7 @@ float snsrDataBuff[10]={0};
 int snsrIdStore[10];     
 
 /*  for every packet the node data valF respect to the unit_p will differ, remaining the macid= extAddr_p, snsrId will remain same if the data receive from one sensor node 
-    storing snsId's at specific rate: id[0] = node_voltage, id[1]=msp temp, id[2]=humdity, id[3]=temp;
+    storing snsId's at specific rate: id[0] = node_voltage, id[1]=msp temp, id[2]=humdity, id[3]=temp ....n
 */
 
 void GW_appendToEventBufferJson(unsigned char *extAddr_p,
@@ -1365,7 +1274,8 @@ void GW_sendMergedDataEvtToCloudJson(void)
    {
        if (Particle.connected())
        {
-           //first time only after configuration
+            //first time only after configuration
+            /*reset_sts_flag for system reset */
             if(reset_sts_flag == 1)
             {
                 delay(100);
@@ -1412,8 +1322,6 @@ void GW_sendMergedDataEvtToCloudJson(void)
             sprintf(snsrIdStore2,"0x%x",snsrIdStore[2]);
             sprintf(snsrIdStore1,"0x%x",snsrIdStore[1]);
             sprintf(snsrIdStore0,"0x%x",snsrIdStore[0]);
-            
-
 
             //Time.format(Time.now(), "%I:%M:%S%p");
             sprintf(GW_get_time,Time.format(Time.now(),"%Y-%m-%d %H:%M:%S"));
@@ -1460,55 +1368,13 @@ void GW_sendMergedDataEvtToCloudJson(void)
             client.publish("wisense/telemetry", GW_jsonMsg);
             client.disconnect();
             */
-            
-            
-            // Added for demo setup  18/09/2020 :-
-            
-            // 00:01:15:aa
-            /*
-            if (strcmp(GW_macBuff, "fe:0d:0a:cf") == 0) {
-                mqttServerConnect(ACCESS_TOKEN_01, NULL);
-                client.publish("v1/devices/me/telemetry", GW_jsonMsg);
-                client.disconnect();
-            }
-            //00:01:15:55 -> RTD device for customer 15SEP2020
-            else if (strcmp(GW_macBuff, "fe:0c:09:cf") == 0) {
-                mqttServerConnect(ACCESS_TOKEN_02, NULL);
-                client.publish("v1/devices/me/telemetry", GW_jsonMsg);
-                client.disconnect();
-            }
-            
-            // fe:0d:3e:5a -> HIH(RH,TEMP) for customer dated 15SEP2020
-            else if (strcmp(GW_macBuff, "fe:0d:4a:46") == 0) {
-                mqttServerConnect(ACCESS_TOKEN_03, NULL);
-                client.publish("v1/devices/me/telemetry", GW_jsonMsg);
-                client.disconnect();
-            }
-            //IoTvity
-            else if(strcmp(GW_macBuff, "00:01:22:3b")== 0) {
-                mqttServerConnect(ACCESS_TOKEN_04, NULL);
-                client.publish("v1/devices/me/telemetry", GW_jsonMsg);              //aYVVrYRXupB19Z76UX8v
-                client.disconnect();
-            }
-            else if(strcmp(GW_macBuff, "00:01:13:24")== 0) {
-                mqttServerConnect(ACCESS_TOKEN_04, NULL);
-                client.publish("v1/devices/me/telemetry", GW_jsonMsg);              //aYVVrYRXupB19Z76UX8v
-                client.disconnect();
-            }
-            */
-            /*
-            if(strcmp(GW_macBuff, "00:01:13:24")== 0) {
-            mqttServerConnect(CLIENT_username_01, CLIENT_password_01);
-            client.publish("wisense/telemetry", GW_jsonMsg);              //aYVVrYRXupB19Z76UX8v
-            client.disconnect();
-            }
-            */
+        
             // particle.publish(GW_jsonMsg,PRIVATE);
             //demo added 18DEC2020 internal HIH sensor node 1 fc:c2:3d:00:00:01:13:24
 
             if(softAP_flag == softAP_flag_default && strcmp(mqtt_usn_store,"NULL") == 0)
             {
-                Serial.printlnf("\nEntering into the default-mode null-username\n");
+                //Serial.printlnf("\nEntering into the default-mode null-username\n");
                 if (strcmp(GW_macBuff, "00:01:13:24") == 0) {
                 mqttServerConnect(ACCESS_TOKEN_01, mqtt_pwd_store);
                 client.publish(mqtt_topic_store, GW_jsonMsg);
@@ -1524,16 +1390,13 @@ void GW_sendMergedDataEvtToCloudJson(void)
             
             if(softAP_flag == 0  && mqtt_select_flag == 2)
             {
-                //Serial.printlnf("\nEntering into the user mode\n");
-                //Serial.printlnf("\nEnter the user defined mqtt\n");
-                //end the code with user defined usn,pwd and setthe topic (use global variable)
-                /* example */
+                /* example use user-defined mqtt credentials*/
                 mqttServerConnect(mqtt_usn_store, mqtt_pwd_store);
                 client.publish(mqtt_topic_store, GW_jsonMsg);
                 client.disconnect();
             }
             
-            Particle.publish("MQTT Creditinals",GW_mqttMsg);
+            Particle.publish("MQTT Creditinals",GW_mqttMsg);        //test
             delay(50);
             /*clearing after pushed */
             snsrIdStore[0] = {0};
@@ -1548,42 +1411,8 @@ void GW_sendMergedDataEvtToCloudJson(void)
             snsrDataBuff[4] = {0};
             */
             
-
-            merge_count=0;
-            /*
-            for(int i=0;i<=4;i++)
-            {
-                snsrIdStore[i]={0};
-                snsrDataBuff[i]={0};
-            }
-            */
-        
-            /*request.port = PORT;
-            request.hostname = HOSTNAME;
-            request.path = API;
-        
-            http_header_t headers[] = {
-            { "User-agent", "Particle HttpClient"},
-            { "Content-Type", "application/json" },
-            //{ "Connection", "close"},
-            { NULL, NULL } // NOTE: Always terminate headers will NULL
-            };
-        
-            request.body = GW_jsonMsg;
-            http.post(request, response, headers); */ 
-            
+            merge_count=0;                                          //clearing merge count to set to start first
             digitalWrite(ledTxToCloud, LOW);
-            /*
-            Serial.printlnf("\n****************************************************************************\n");
-            //Serial.printlnf("\n softAP_flag<%d>\n mqtt_select_flag <%d>\n ***********************************************************************\n",softAP_flag,mqtt_select_flag);
-            //delay(100);
-            //Serial.printlnf("\n mqtt default stored data listed below:\n mqtt_server <%s>,\n mqtt_usn <%s>,\n mqtt_pwd <%s>,\n mqtt_clientId <%s>,\n mqtt_topic <%s>,\n ***********************************************************************\n");
-            //delay(100);
-            Serial.printlnf("\n mqtt_server_store <%s>\n mqtt_usn_store <%s>\n mqtt_pwd_store <%s>\n mqtt_clientId_store <%s>\n mqtt_topic_store <%s>\n ***********************************************************************\n",mqtt_server_store,mqtt_usn_store,mqtt_pwd_store,mqtt_clientId_store,mqtt_topic_store);
-            delay(100);
-            Serial.printlnf("\n EEPROM stored datas listed below:\n mqtt_server <%s>,\n mqtt_usn <%s>,\n> mqtt_pwd <%s>,\n mqtt_clientId <%s>,\n mqtt_topic <%s>.\n ***********************************************************************\n",mqtt_server,mqtt_usn,mqtt_pwd,mqtt_clientId,mqtt_topic);
-            Serial.printlnf("\n****************************************************************************\n");
-            */
        }
    }
    
@@ -1746,11 +1575,6 @@ void GW_sendDataToCloud(unsigned char *extAddr_p,
    }
 }
 
-
-
-
-
-
 /*
  ********************************************************************
  *
@@ -1779,12 +1603,6 @@ void GW_sendIntDataToCloud(unsigned char *extAddr_p,
 }
 
 #endif
-
-
-
-
-
-
 
 /*
  ********************************************************************
@@ -1938,8 +1756,6 @@ void GW_processTagBcn(unsigned char *extAddr_p, unsigned char *buff_p, int msgLe
     }
 }
 
-
-
  const double RTD_A = (float)3.9083e-3;
  const double RTD_B = (float)-5.775e-7;
 // /*
@@ -1994,9 +1810,7 @@ void GW_processTagBcn(unsigned char *extAddr_p, unsigned char *buff_p, int msgLe
 
    return temp;
  }
-
-
-
+ 
 /*
  ********************************************************************
  *
@@ -3631,8 +3445,8 @@ void loop()
   #ifdef UART_TEST_ENA
   for (;;)
   {
-     Serial.printf("Hello World %u \r\n", loopCnt);
-     Serial1.printf("UART Hello World %u \r\n", loopCnt);
+     //Serial.printf("Hello World %u \r\n", loopCnt);
+     //Serial1.printf("UART Hello World %u \r\n", loopCnt);
      delay(500);
      loopCnt ++;
   }
@@ -3693,7 +3507,7 @@ void loop()
     EEPROM.get(200,mqtt_topic);
     
     setup_status=0;
-    while(digitalRead(button) == LOW) {                       // waits for 200mS
+    while(digitalRead(button) == LOW) {                     //can use 2 while check for time lacking for setup
     setup_status++;
     delay(1000);
     if(setup_status==3)
@@ -3703,7 +3517,6 @@ void loop()
         setup_status=0;        
     }
   }
-
 
   // To blink the LED, first we'll turn it on...
   // digitalWrite(led1, HIGH);
