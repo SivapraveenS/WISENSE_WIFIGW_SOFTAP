@@ -20,8 +20,6 @@
  * permission of the author.    
  */
  
-#define 
- 
 /* global declaration */
 char str1[32],str2[32],str3[32],str4[50],str5[50];  // global
 char mqtt_server[50],mqtt_usn[32],mqtt_pwd[32],mqtt_clientId[50],mqtt_topic[50];
@@ -57,7 +55,6 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
     char  _url[strlen(url)+1];
     char* query;
     char* value;
-    //EEPROM.clear();
     Log.trace("handling page %s", url);
 
     strcpy(_url, url);
@@ -79,31 +76,26 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str1, val, sizeof(str1));
-                //Serial.printlnf("\nStr1 data <%s> and val-1 data <%s>",str1,val);
             }
             if(strcmp(token, "str2") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str2, val, sizeof(str2));
-                //Serial.printlnf("\nStr2 data <%s> and val-2 data <%s>\n",str2,val);
             }
             if(strcmp(token, "str3") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str3, val, sizeof(str3));
-                //Serial.printlnf("\nStr3 data <%s> and val-3 data <%s>\n",str3,val);
             }
             if(strcmp(token, "str4") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str4, val, sizeof(str4));
-                //Serial.printlnf("\nStr4 data <%s> and val-4 data <%s>\n",str4,val);
             }
             if(strcmp(token, "str5") == 0) 
             { 
                 char* val = strtok_r(NULL, "?&=", &value);
                 strncpy(str5, val, sizeof(str5));
-                //Serial.printlnf("\nStr5 data <%s> and val-5 data <%s>\n",str5,val);
             }
             if(strcmp(token, "store") == 0) 
             {
@@ -1374,7 +1366,7 @@ void GW_sendMergedDataEvtToCloudJson(void)
 
             if(softAP_flag == softAP_flag_default && strcmp(mqtt_usn_store,"NULL") == 0)
             {
-                //Serial.printlnf("\nEntering into the default-mode null-username\n");
+                /* wisense dashboard credentials  */
                 if (strcmp(GW_macBuff, "00:01:13:24") == 0) {
                 mqttServerConnect(ACCESS_TOKEN_01, mqtt_pwd_store);
                 client.publish(mqtt_topic_store, GW_jsonMsg);
