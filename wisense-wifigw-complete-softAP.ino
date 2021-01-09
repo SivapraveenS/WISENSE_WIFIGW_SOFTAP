@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
- /* wifi manager */
+ /* wifi library manager */
 #include "Particle.h"
 #include "softap_cred.h"
 #include "softap_http.h"
